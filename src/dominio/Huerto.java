@@ -62,11 +62,12 @@ public class Huerto {
         this.tamaño = tamaño;
     }
     //Fin Getter y Setter
+
     /**
      * ======================================
      * Aqui pondremos las funciones necesarias.
      * ======================================
-     *
+     * <p>
      * Se me ocurre una para añadirle el dueño
      *
      */
@@ -77,12 +78,6 @@ public class Huerto {
     //Funcion toString
     @Override
     public String toString() {
-        return "Huerto{" +
-                "tamaño=" + tamaño +
-                ", localizacion='" + localizacion + '\'' +
-                ", cultivo='" + cultivo + '\'' +
-                ", idPersona=" + idPersona +
-                ", ID=" + ID +
-                '}';
+        return "Huerto{" + "tamaño=" + tamaño + ", localizacion='" + localizacion + '\'' + ", cultivo='" + cultivo + '\'' + ", idPersona=" + idPersona + ", ID=" + ID + '}';
     }
 }
