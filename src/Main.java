@@ -1,4 +1,4 @@
-import modelo.Huerto;
+import dominio.Huerto;
 import repositorios.RepoHuerto;
 
 public class Main {
