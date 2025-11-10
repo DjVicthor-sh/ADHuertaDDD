@@ -1,5 +1,7 @@
 package repositorios;
 
+import modelo.Huerto;
+
 import java.util.List;
 import java.util.Optional;
 
