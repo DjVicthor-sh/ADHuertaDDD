@@ -10,7 +10,7 @@ public class Huerto {
     private Long idPersona;
     private String cultivo;
     private String localizacion;
-    private float tamaño;
+    private float tamanio;
 
     //Constructor
     public Huerto(Long ID, Long idPersona, String cultivo, String localizacion, float tamaño) {
@@ -18,7 +18,7 @@ public class Huerto {
         this.idPersona = idPersona;
         this.cultivo = cultivo;
         this.localizacion = localizacion;
-        this.tamaño = tamaño;
+        this.tamanio = tamanio;
     }
 
     //Getter y Setter
@@ -54,12 +54,12 @@ public class Huerto {
         this.localizacion = localizacion;
     }
 
-    public float getTamaño() {
-        return tamaño;
+    public float getTamanio() {
+        return tamanio;
     }
 
-    public void setTamaño(float tamaño) {
-        this.tamaño = tamaño;
+    public void setTamanio(float tamanio) {
+        this.tamanio = tamanio;
     }
     //Fin Getter y Setter
 
@@ -78,6 +78,6 @@ public class Huerto {
     //Funcion toString
     @Override
     public String toString() {
-        return "Huerto{" + "tamaño=" + tamaño + ", localizacion='" + localizacion + '\'' + ", cultivo='" + cultivo + '\'' + ", idPersona=" + idPersona + ", ID=" + ID + '}';
+        return "Huerto{" + "tamaño=" + tamanio + ", localizacion='" + localizacion + '\'' + ", cultivo='" + cultivo + '\'' + ", idPersona=" + idPersona + ", ID=" + ID + '}';
     }
 }
