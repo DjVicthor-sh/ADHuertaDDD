@@ -1,11 +1,10 @@
 package repositorios;
 
-import modelo.Huerto;
-
 import java.util.List;
 import java.util.Optional;
 
-public class RepoHuerto implements IRepositorioExtend {
+public class RepoHuerto<T, ID> implements IRepositorioExtend<T,ID> {
+    //hcerlo generico <T, ID>
     @Override
     public Optional findByIdOptional(Object o) {
         return Optional.empty();
