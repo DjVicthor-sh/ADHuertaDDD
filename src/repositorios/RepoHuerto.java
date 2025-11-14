@@ -1,12 +1,14 @@
 package repositorios;
 
+import dominio.Huerto;
+
 import java.util.List;
 import java.util.Optional;
 
-public class RepoHuerto<T, ID> implements IRepositorioExtend<T,ID> {
-    //hcerlo generico <T, ID>
+public class RepoHuerto implements IRepositorioExtend<Huerto,Long> {
+    
     @Override
-    public Optional findByIdOptional(Object o) {
+    public Optional<Huerto> findByIdOptional(Long id) {
         return Optional.empty();
     }
 
@@ -16,7 +18,7 @@ public class RepoHuerto<T, ID> implements IRepositorioExtend<T,ID> {
     }
 
     @Override
-    public void deleteById(Object o) {
+    public void deleteById(Long id) {
 
     }
 
@@ -26,12 +28,12 @@ public class RepoHuerto<T, ID> implements IRepositorioExtend<T,ID> {
     }
 
     @Override
-    public boolean existsById(Object o) {
+    public boolean existsById(Long id) {
         return false;
     }
 
     @Override
-    public Object findById(Object o) {
+    public Huerto findById(Long id) {
         return null;
     }
 
@@ -41,7 +43,9 @@ public class RepoHuerto<T, ID> implements IRepositorioExtend<T,ID> {
     }
 
     @Override
-    public Object save(Object entity) {
+    public <S extends Huerto> S save(S huerto) {
+
+
         return null;
     }
 }
