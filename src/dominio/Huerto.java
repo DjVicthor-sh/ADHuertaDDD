@@ -10,15 +10,15 @@ public class Huerto {
     private Long idPersona;
     private String cultivo;
     private String localizacion;
-    private float tamaño;
+    private float tamanio;
 
     //Constructor
-    public Huerto(Long ID, Long idPersona, String cultivo, String localizacion, float tamaño) {
+    public Huerto(Long ID, Long idPersona, String cultivo, String localizacion, float tamanio) {
         this.ID = ID;
         this.idPersona = idPersona;
         this.cultivo = cultivo;
         this.localizacion = localizacion;
-        this.tamaño = tamaño;
+        this.tamanio = tamanio;
     }
 
     //Getter y Setter
@@ -54,12 +54,12 @@ public class Huerto {
         this.localizacion = localizacion;
     }
 
-    public float getTamaño() {
-        return tamaño;
+    public float getTamanio() {
+        return tamanio;
     }
 
-    public void setTamaño(float tamaño) {
-        this.tamaño = tamaño;
+    public void setTamanio(float tamanio) {
+        this.tamanio = tamanio;
     }
     //Fin Getter y Setter
 
@@ -83,7 +83,7 @@ public class Huerto {
                 ", idPersona=" + idPersona +
                 ", cultivo='" + cultivo + '\'' +
                 ", localizacion='" + localizacion + '\'' +
-                ", tamaño=" + tamaño +
+                ", tamaño=" + tamanio +
                 '}';
     }
 }
