@@ -10,7 +10,9 @@ public class Persona {
     private String nombre;
     private String apellido;
 
-    public Persona(String apellido, String nombre, Long ID) {
+    public Persona(Long ID, String nombre, String apellido) {
+        this.ID = ID;
+        this.nombre = nombre;
         this.apellido = apellido;
         this.nombre = nombre;
         this.ID = ID;
