@@ -6,42 +6,40 @@ package dominio;
 
 public class Persona {
 
-    private Long ID;
-    private String nombre;
-    private String apellido;
+    private final Long ID;
+    private final String nombre;
+    private final String apellido;
 
     public Persona(Long ID, String nombre, String apellido) {
+
+        // Validar
+        if (ID == null || ID <= 0) {
+            throw new IllegalArgumentException("El ID no puede ser nulo o negativo.");
+        }
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre no puede estar vacío.");
+        }
+        if (apellido == null || apellido.trim().isEmpty()) {
+            throw new IllegalArgumentException("El apellido no puede estar vacío.");
+        }
+
         this.ID = ID;
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.nombre = nombre;
-        this.ID = ID;
+        this.nombre = nombre.trim(); // Guardamos sin espacios extra
+        this.apellido = apellido.trim();
     }
 
-    // Getters y Setters
+    // Getters
 
     public Long getID() {
         return ID;
-    }
-
-    public void setID(Long ID) {
-        this.ID = ID;
     }
 
     public String getNombre() {
         return nombre;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
     public String getApellido() {
         return apellido;
-    }
-
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
     }
 
     /**
@@ -54,12 +52,11 @@ public class Persona {
      */
     //Funciones
 
-    //Fin Funciones
     @Override
     public String toString() {
         return "Persona{" +
-                "nombre='" + nombre + '\'' +
-                ", ID=" + ID +
+                "ID=" + ID +
+                ", nombre='" + nombre + '\'' +
                 ", apellido='" + apellido + '\'' +
                 '}';
     }
