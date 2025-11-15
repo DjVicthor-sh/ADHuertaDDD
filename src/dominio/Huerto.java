@@ -78,6 +78,12 @@ public class Huerto {
     //Funcion toString
     @Override
     public String toString() {
-        return "Huerto{" + "tamaño=" + tamaño + ", localizacion='" + localizacion + '\'' + ", cultivo='" + cultivo + '\'' + ", idPersona=" + idPersona + ", ID=" + ID + '}';
+        return "Huerto{" +
+                "ID=" + ID +
+                ", idPersona=" + idPersona +
+                ", cultivo='" + cultivo + '\'' +
+                ", localizacion='" + localizacion + '\'' +
+                ", tamaño=" + tamaño +
+                '}';
     }
 }
