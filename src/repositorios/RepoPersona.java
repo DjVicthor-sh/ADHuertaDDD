@@ -1,6 +1,7 @@
 package repositorios;
 
 import dominio.Persona;
+import gestorCSV.GestorCSV;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class RepoPersona implements IRepositorioExtend<Persona, Long> {
             lineas.add(personaToCsv(p));
         }
 
-        // 2. El GestorCSV escribe las líneas
+        // 2. El gestorCSV.GestorCSV escribe las líneas
         GestorCSV.escribirTodasLasLineas(FILE_NAME, lineas);
     }
 
@@ -70,7 +71,7 @@ public class RepoPersona implements IRepositorioExtend<Persona, Long> {
     public List<Persona> findAll() {
         List<Persona> personas = new ArrayList<>();
 
-        // 1. El GestorCSV lee las líneas
+        // 1. El gestorCSV.GestorCSV lee las líneas
         List<String> lineas = GestorCSV.leerLineas(FILE_NAME);
 
         // 2. El Repositorio las "traduce"

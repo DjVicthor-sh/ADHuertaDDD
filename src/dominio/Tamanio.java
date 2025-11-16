@@ -5,6 +5,8 @@ public class Tamanio {
     private final float tamanio;
     private final String unidad;
 
+    private static final String SEPARADOR = ",";
+
     public Tamanio(float tamanio, String unidad) {
 
         // --- Validación ---
@@ -27,6 +29,12 @@ public class Tamanio {
     public String getUnidad() {
         return unidad;
     }
+
+    private String tamanioToCSV(Tamanio tamanio) {
+        return tamanio.getTamanio()+ SEPARADOR +
+                tamanio.getUnidad();
+    }
+
 
     @Override
     public String toString() {

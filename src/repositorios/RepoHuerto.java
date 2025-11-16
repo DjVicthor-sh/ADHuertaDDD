@@ -1,7 +1,9 @@
 package repositorios;
 
 import dominio.Huerto;
-import dominio.Persona;
+
+import dominio.Tamanio;
+import gestorCSV.GestorCSV;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
     BufferedReader br = null;
 
     private static final String SEPARADOR = ",";
+    private static final String FILE_NAME = "Huerto.csv";
 
     private String huertoToCSV(Huerto huerto) {
         return huerto.getID() + SEPARADOR +
@@ -32,8 +35,19 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
                 Long.parseLong(parte[1]),
                 parte[2],
                 parte[3],
-                Float.parseFloat(parte[4])
+                //Ni idea de como meter aqui el tamaño.
         );
+    }
+
+    private void escribirTodas(List<Huerto> huerto) {
+        // 1. El Repositorio "traduce" las personas a líneas
+        List<String> lineas = new ArrayList<>();
+        for (Huerto h : huerto) {
+            lineas.add(huertoToCSV(h));
+        }
+
+        // 2. El gestorCSV.GestorCSV escribe las líneas
+        GestorCSV.escribirTodasLasLineas(FILE_NAME, lineas);
     }
 
 
@@ -70,9 +84,17 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
     @Override
     public void deleteById(Long id) {
 
-        /**
-         *  Completar el save()
-         */
+        if (id == null) {
+            throw new IllegalArgumentException("El ID no puede ser nulo");
+        }
+        // 1. LEER TODO
+        List<Huerto> lista = findAll();
+
+        // 2. MODIFICAR EN MEMORIA
+        lista.removeIf(h -> h.getID().equals(id));
+
+        // 3. VOLVER A ESCRIBIR TODO
+        escribirTodas(lista);
 
     }
 
@@ -162,8 +184,8 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
 
         lista.add(huerto);
 
-        //Esperrar a repositorios.GestorCSV para la funcion de escribir
-
+        //Esperrar a gestorCSV.GestorCSV para la funcion de escribir
+        escribirTodas(lista);
 
         return huerto;
     }

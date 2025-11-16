@@ -1,13 +1,10 @@
 import dominio.Huerto;
 import dominio.Persona;
+import dominio.Tamanio;
 import repositorios.RepoHuerto;
 import repositorios.RepoPersona;
 
-// import java.io.BufferedWriter;
-// import java.io.FileWriter;
-// import java.io.IOException;
-// import java.util.ArrayList;
-// import java.util.List;
+
 
 public class Main {
 
@@ -36,7 +33,7 @@ public class Main {
         // 4. Crear un Huerto y guardarlo
         try {
             // (Usa 20.5f para que sea float)
-            Huerto h1 = new Huerto(101L, 1L, "Patata", "Madrid", 20.5f);
+            Huerto h1 = new Huerto(101L, 1L, "Patata", "Madrid", new Tamanio(20f,"m2"));
             rh.save(h1);
             System.out.println("Huerto guardado: " + h1.getCultivo());
         } catch (Exception e) {
