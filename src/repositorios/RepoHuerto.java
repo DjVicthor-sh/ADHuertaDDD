@@ -152,24 +152,18 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
         return lista;
     }
 
-    //Por el momento guarda solo un objeto, se tendria que poder guardar mas de uno usando una lkista o similar.
+
     @Override
     public <S extends Huerto> S save(S huerto) {
 
-        try {
+        List<Huerto> lista = findAll();
 
-            bw = new BufferedWriter(new FileWriter("Huerto.csv", true));
+        lista.removeIf(h -> h.getID().equals(huerto.getID()));
 
-            //Funcion provisional con toString
-            bw.write(huertoToCSV(huerto));
-            bw.newLine();
-            bw.close();
+        lista.add(huerto);
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //Esperrar a GestorCSV para la funcion de escribir
+
 
         return huerto;
     }
