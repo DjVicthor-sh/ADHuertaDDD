@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public class RepoPersona implements IRepositorioExtend<Persona, Long> {
 
-    // Constantes para el fichero, igual que tu compañero usa SEPARATOR
+    // Constantes para el fichero
     private static final String FILE_NAME = "Persona.csv";
     private static final String SEPARATOR = ",";
 
@@ -50,26 +50,14 @@ public class RepoPersona implements IRepositorioExtend<Persona, Long> {
      * SOBRESCRIBIENDO el contenido. Esto es necesario para save() y deleteById().
      */
     private void escribirTodas(List<Persona> personas) {
-        BufferedWriter bw = null;
-        try {
-            // 'false' en FileWriter para SOBRESCRIBIR el fichero
-            bw = new BufferedWriter(new FileWriter(FILE_NAME, false));
-            for (Persona p : personas) {
-                bw.write(personaToCsv(p));
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error al escribir en el fichero: " + e.getMessage());
-        } finally {
-            // Cerramos manualmente, al estilo de tu compañero
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        // 1. El Repositorio "traduce" las personas a líneas
+        List<String> lineas = new ArrayList<>();
+        for (Persona p : personas) {
+            lineas.add(personaToCsv(p));
         }
+
+        // 2. El GestorCSV escribe las líneas
+        GestorCSV.escribirTodasLasLineas(FILE_NAME, lineas);
     }
 
 
@@ -77,33 +65,19 @@ public class RepoPersona implements IRepositorioExtend<Persona, Long> {
 
     /**
      * Devuelve todas las instancias de Persona del fichero.
-     * (Estilo idéntico a findAll() de RepoHuerto)
      */
     @Override
     public List<Persona> findAll() {
         List<Persona> personas = new ArrayList<>();
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(FILE_NAME));
-            String linea;
-            while ((linea = br.readLine()) != null) {
-                if (!linea.trim().isEmpty()) { // Evitar líneas vacías
-                    personas.add(csvToPersona(linea));
-                }
-            }
-        } catch (FileNotFoundException e) {
-            // No es un error, el fichero puede estar vacío al principio
-        } catch (IOException e) {
-            throw new RuntimeException("Error al leer el fichero: " + e.getMessage());
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+
+        // 1. El GestorCSV lee las líneas
+        List<String> lineas = GestorCSV.leerLineas(FILE_NAME);
+
+        // 2. El Repositorio las "traduce"
+        for (String linea : lineas) {
+            personas.add(csvToPersona(linea));
         }
+
         return personas;
     }
 
@@ -155,21 +129,8 @@ public class RepoPersona implements IRepositorioExtend<Persona, Long> {
      */
     @Override
     public void deleteAll() {
-        BufferedWriter bw = null;
-        try {
-            bw = new BufferedWriter(new FileWriter(FILE_NAME));
-            bw.write("");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        // Le pedimos al gestor que escriba una lista vacía
+        GestorCSV.escribirTodasLasLineas(FILE_NAME, new ArrayList<>());
     }
 
     /**
