@@ -6,11 +6,11 @@ package dominio;
  */
 public class Huerto {
 
-    private Long ID;
-    private Long idPersona;
-    private String cultivo;
-    private String localizacion;
-    private Tamanio tamanio;
+    private final Long ID;
+    private final Long idPersona;
+    private final String cultivo;
+    private final String localizacion;
+    private final Tamanio tamanio;
 
     //Constructor
     public Huerto(Long ID, Long idPersona, String cultivo, String localizacion, Tamanio tamanio) {
@@ -21,46 +21,27 @@ public class Huerto {
         this.tamanio = tamanio;
     }
 
-    //Getter y Setter
+    //Getters
     public Long getID() {
         return ID;
-    }
-
-    public void setID(Long ID) {
-        this.ID = ID;
     }
 
     public Long getIdPersona() {
         return idPersona;
     }
 
-    public void setIdPersona(Long idPersona) {
-        this.idPersona = idPersona;
-    }
-
     public String getCultivo() {
         return cultivo;
-    }
-
-    public void setCultivo(String cultivo) {
-        this.cultivo = cultivo;
     }
 
     public String getLocalizacion() {
         return localizacion;
     }
 
-    public void setLocalizacion(String localizacion) {
-        this.localizacion = localizacion;
-    }
-
     public Tamanio getTamanio() {
         return tamanio;
     }
 
-    public void setTamanio(Tamanio tamanio) {
-        this.tamanio = tamanio;
-    }
     //Fin Getter y Setter
 
     /**

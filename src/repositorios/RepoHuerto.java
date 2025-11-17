@@ -19,23 +19,31 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
     private static final String FILE_NAME = "Huerto.csv";
 
     private String huertoToCSV(Huerto huerto) {
+        // "Aplanamos" el objeto Tamanio en sus dos propiedades
         return huerto.getID() + SEPARADOR +
                 huerto.getIdPersona() + SEPARADOR +
                 huerto.getCultivo() + SEPARADOR +
                 huerto.getLocalizacion() + SEPARADOR +
-                huerto.getTamanio();
+                huerto.getTamanio().getTamanio() + SEPARADOR + // <-- [4] Valor del tamaño
+                huerto.getTamanio().getUnidad();            // <-- [5] Unidad del tamaño
     }
 
     private Huerto csvToHueto(String csvLine) {
 
         String[] parte = csvLine.split(SEPARADOR);
 
+        // 1. "Re-hidratamos" el Objeto Valor Tamanio leyendo las dos últimas columnas
+        float tamanioValor = Float.parseFloat(parte[4]);
+        String tamanioUnidad = parte[5];
+        Tamanio tamanio = new Tamanio(tamanioValor, tamanioUnidad);
+
+        // 2. Creamos el Huerto con el objeto Tamanio
         return new Huerto(
                 Long.parseLong(parte[0]),
                 Long.parseLong(parte[1]),
                 parte[2],
                 parte[3],
-                //Ni idea de como meter aqui el tamaño.
+                tamanio // <-- Le pasamos el objeto completo
         );
     }
 
@@ -59,26 +67,8 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
     //Suma 1 por cada linea, cada lina es una entidad distinta
     @Override
     public long count() {
-
-        int numLineas = 0;
-
-        try {
-
-            br = new BufferedReader(new FileReader("Huerto.csv"));
-
-            while ((br.readLine()) != null) {
-                numLineas += 1;
-            }
-
-            br.close();
-
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return numLineas;
+        // Mucho más simple: solo cuenta la lista de findAll()
+        return findAll().size();
     }
 
     @Override
@@ -101,17 +91,8 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
     //Para borrar simplemente escribimos una linea sin nada, ya que escribe desde el principio
     @Override
     public void deleteAll() {
-
-        try {
-
-            bw = new BufferedWriter(new FileWriter("Huerto.csv"));
-
-            bw.write("");
-            bw.close();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        // Le pide al gestor que escriba una lista vacía
+        GestorCSV.escribirTodasLasLineas(FILE_NAME, new ArrayList<>());
     }
 
     @Override
@@ -148,27 +129,14 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
 
     @Override
     public List<Huerto> findAll() {
+        List<Huerto> lista = new ArrayList<>();
 
-        String linea;
+        // 1. El GestorCSV lee
+        List<String> lineas = GestorCSV.leerLineas(FILE_NAME);
 
-        List<Huerto> lista = new ArrayList<Huerto>();
-
-        try {
-
-            br = new BufferedReader(new FileReader("Huerto.csv"));
-
-            while (((linea = br.readLine()) != null)) {
-
-                lista.add(csvToHueto(linea));
-
-            }
-
-            br.close();
-
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        // 2. El Repositorio traduce
+        for (String linea : lineas) {
+            lista.add(csvToHueto(linea));
         }
 
         return lista;
