@@ -9,7 +9,7 @@ public class Tamanio {
 
     public Tamanio(float tamanio, String unidad) {
 
-        // --- Validación ---
+        // --- Validacion ---
         if (tamanio <= 0) {
             throw new IllegalArgumentException("El tamaño debe ser positivo.");
         }
