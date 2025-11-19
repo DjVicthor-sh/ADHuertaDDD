@@ -4,56 +4,75 @@ import dominio.Tamanio;
 import repositorios.RepoHuerto;
 import repositorios.RepoPersona;
 
+import java.util.List;
+
 public class Main {
 
     public static void main(String[] args) {
+        System.out.println("=== INICIO DE PRUEBAS (2 Entidades: Persona y Huerto) ===");
 
-        System.out.println("--- Prueba simple de repositorios ---");
+        // 1. Instanciar Repositorios
+        RepoPersona repoPersona = new RepoPersona();
+        RepoHuerto repoHuerto = new RepoHuerto();
 
-        // 1. Crear repositorios
-        RepoHuerto rh = new RepoHuerto();
-        RepoPersona rp = new RepoPersona();
+        // 2. Limpieza inicial (deleteAll) para empezar de cero
+        repoPersona.deleteAll();
+        repoHuerto.deleteAll();
+        System.out.println("[OK] Ficheros limpiados.");
 
-        // 2. Empezar de cero (borra los CSV)
-        rh.deleteAll();
-        rp.deleteAll();
-        System.out.println("Ficheros limpios.");
+        // 3. Guardar Personas (save)
+        System.out.println("\n--- Guardando Personas ---");
+        Persona p1 = new Persona(1L, "Victor", "Huerta");
+        Persona p2 = new Persona(2L, "Ana", "Lopez");
 
-        // 3. Crear una Persona y guardarla
-        try {
-            Persona p1 = new Persona(1L, "Paco", "Garcia");
-            rp.save(p1);
-            System.out.println("Persona guardada: " + p1.getNombre());
-        } catch (Exception e) {
-            System.out.println("ERROR al guardar persona: " + e.getMessage());
+        repoPersona.save(p1);
+        repoPersona.save(p2);
+
+        System.out.println("Personas guardadas: " + repoPersona.count()); // Debe salir 2
+
+        // 4. Guardar Huertos (save) - Relacionados con Persona 1 y 2
+        System.out.println("\n--- Guardando Huertos ---");
+        // Huerto 100 asignado a Victor (ID 1)
+        Huerto h1 = new Huerto(100L, 1L, "Tomates", "Valencia", new Tamanio(50f, "m2"));
+        // Huerto 101 asignado a Ana (ID 2)
+        Huerto h2 = new Huerto(101L, 2L, "Patatas", "Madrid", new Tamanio(100f, "Ha"));
+
+        repoHuerto.save(h1);
+        repoHuerto.save(h2);
+
+        System.out.println("Huertos guardados: " + repoHuerto.count()); // Debe salir 2
+
+        // 5. Pruebas de Búsqueda Estándar (findById / existsById)
+        System.out.println("\n--- Pruebas CRUD Estándar ---");
+        System.out.println("¿Existe Persona 1?: " + repoPersona.existsById(1L));
+
+        Huerto hRecuperado = repoHuerto.findById(100L);
+        if (hRecuperado != null) {
+            System.out.println("Huerto recuperado por ID 100: " + hRecuperado.getCultivo());
         }
 
-        // 4. Crear un Huerto y guardarlo
-        try {
-            // (Usa 20.5f para que sea float)
-            Huerto h1 = new Huerto(101L, 1L, "Patata", "Madrid", new Tamanio(20f,"m2"));
-            rh.save(h1);
-            System.out.println("Huerto guardado: " + h1.getCultivo());
-        } catch (Exception e) {
-            System.out.println("ERROR al guardar huerto: " + e.getMessage());
+        // 6. PRUEBA DE MÉTODOS SEMÁNTICOS (Tus métodos propios)
+        System.out.println("\n--- Pruebas de Métodos Propios (Semánticos) ---");
+
+        // A) RepoPersona: findByApellido
+        System.out.println("> Buscando personas con apellido 'Huerta':");
+        List<Persona> listaPersonas = repoPersona.findByApellido("Huerta");
+        for (Persona p : listaPersonas) {
+            System.out.println("  Encontrado: " + p.getNombre() + " " + p.getApellido());
         }
 
-        // 5. Comprobar el conteo
-        System.out.println("--- Conteo Final ---");
-        System.out.println("Total Personas en CSV: " + rp.count());
-        System.out.println("Total Huertos en CSV: " + rh.count());
+        // B) RepoHuerto: findByCultivo
+        System.out.println("> Buscando huertos de 'Patatas':");
+        List<Huerto> listaHuertos = repoHuerto.findByCultivo("Patatas");
+        for (Huerto h : listaHuertos) {
+            System.out.println("  Encontrado Huerto ID " + h.getID() + " en " + h.getLocalizacion());
+        }
 
-        /*
-        REPO HUERTO
-            - findByIdOptional(Long id)
-            - count()
-            - deleteById()
-            - deleteAll()
-            - existById()
-            - findById(Long id)
-            - findAll()
-            -
-         */
+        // 7. Prueba de Borrado (deleteById)
+        System.out.println("\n--- Prueba de Borrado ---");
+        repoHuerto.deleteById(100L); // Borramos los tomates
+        System.out.println("Huertos restantes tras borrar uno: " + repoHuerto.count());
 
+        System.out.println("\n=== PRUEBAS FINALIZADAS ===");
     }
 }
