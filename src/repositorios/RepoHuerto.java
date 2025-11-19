@@ -13,8 +13,22 @@ import java.util.Optional;
 public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
 
     // Constantes para el fichero
-    private static final String SEPARADOR = ",";
     private static final String FILE_NAME = "Huerto.csv";
+    private static final String SEPARADOR = ",";
+
+    // Constructor con validacion
+    public RepoHuerto(){
+        try {
+            File file = new File(FILE_NAME);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error al crear el fichero CSV: " + e.getMessage());
+        }
+    }
+
+    // --- Métodos privados ---
 
     private String huertoToCSV(Huerto huerto) {
         // "Aplanamos" el objeto Tamanio en sus dos propiedades

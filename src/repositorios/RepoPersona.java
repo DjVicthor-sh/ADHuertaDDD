@@ -14,7 +14,7 @@ public class RepoPersona implements IRepositorioExtend<Persona, Long> {
     private static final String FILE_NAME = "Persona.csv";
     private static final String SEPARATOR = ",";
 
-    // Un constructor para asegurar que el fichero existe
+    // Constructor con validacion
     public RepoPersona() {
         try {
             File file = new File(FILE_NAME);

@@ -12,7 +12,7 @@ public class Huerto {
     private final String localizacion;
     private final Tamanio tamanio;
 
-    //Constructor
+    // Constructor
     public Huerto(Long ID, Long idPersona, String cultivo, String localizacion, Tamanio tamanio) {
         this.ID = ID;
         this.idPersona = idPersona;
