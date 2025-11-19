@@ -12,9 +12,7 @@ import java.util.Optional;
 
 public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
 
-    BufferedWriter bw = null;
-    BufferedReader br = null;
-
+    // Constantes para el fichero
     private static final String SEPARADOR = ",";
     private static final String FILE_NAME = "Huerto.csv";
 

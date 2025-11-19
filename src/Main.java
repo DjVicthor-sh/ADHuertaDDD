@@ -4,8 +4,6 @@ import dominio.Tamanio;
 import repositorios.RepoHuerto;
 import repositorios.RepoPersona;
 
-
-
 public class Main {
 
     public static void main(String[] args) {
@@ -44,5 +42,18 @@ public class Main {
         System.out.println("--- Conteo Final ---");
         System.out.println("Total Personas en CSV: " + rp.count());
         System.out.println("Total Huertos en CSV: " + rh.count());
+
+        /*
+        REPO HUERTO
+            - findByIdOptional(Long id)
+            - count()
+            - deleteById()
+            - deleteAll()
+            - existById()
+            - findById(Long id)
+            - findAll()
+            -
+         */
+
     }
 }

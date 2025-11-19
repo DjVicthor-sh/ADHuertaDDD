@@ -44,18 +44,6 @@ public class Huerto {
 
     //Fin Getter y Setter
 
-    /**
-     * ======================================
-     * Aqui pondremos las funciones necesarias.
-     * ======================================
-     * <p>
-     * Se me ocurre una para añadirle el dueño
-     *
-     */
-    //Funciones
-
-    //Fin Funciones
-
     //Funcion toString
     @Override
     public String toString() {
