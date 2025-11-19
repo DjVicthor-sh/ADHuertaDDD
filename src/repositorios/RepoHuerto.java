@@ -169,4 +169,14 @@ public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
 
         return huerto;
     }
+    public List<Huerto> findByCultivo(String cultivo) {
+        List<Huerto> resultado = new ArrayList<>();
+        for (Huerto h : findAll()) {
+            if (h.getCultivo().equalsIgnoreCase(cultivo)) {
+                resultado.add(h);
+            }
+        }
+        return resultado;
+    }
 }
+

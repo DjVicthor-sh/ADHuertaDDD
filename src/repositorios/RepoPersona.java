@@ -174,4 +174,15 @@ public class RepoPersona implements IRepositorioExtend<Persona, Long> {
     public Optional<Persona> findByIdOptional(Long id) {
         return Optional.ofNullable(findById(id));
     }
+
+    public List<Persona> findByApellido(String apellido) {
+        List<Persona> resultado = new ArrayList<>();
+        for (Persona p : findAll()) {
+            if (p.getApellido().equalsIgnoreCase(apellido)) {
+                resultado.add(p);
+            }
+        }
+        return resultado;
+    }
 }
+
