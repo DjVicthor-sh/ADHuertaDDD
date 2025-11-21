@@ -48,7 +48,7 @@ public class Main {
 
         Huerto hRecuperado = repoHuerto.findById(100L);
         if (hRecuperado != null) {
-            System.out.println("Huerto recuperado por ID 100: " + hRecuperado.getCultivo());
+            System.out.println("Huerto recuperado por ID 100: " + hRecuperado.toString());
         }
 
         // 6. PRUEBA DE MÉTODOS SEMÁNTICOS (Tus métodos propios)
@@ -65,7 +65,7 @@ public class Main {
         System.out.println("> Buscando huertos de 'Patatas':");
         List<Huerto> listaHuertos = repoHuerto.findByCultivo("Patatas");
         for (Huerto h : listaHuertos) {
-            System.out.println("  Encontrado Huerto ID " + h.getID() + " en " + h.getLocalizacion());
+            System.out.println("  Encontrado Huerto ID " + h.getID() + " en " + h.getLocalizacion() + "\nLa informacion completa es: " +h.toString() );
         }
 
         // 7. Prueba de Borrado (deleteById)
