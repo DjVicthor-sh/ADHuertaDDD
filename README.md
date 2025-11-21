@@ -1,84 +1,69 @@
-# 🛡️ GUÍA DE DEFENSA - PRÁCTICA 1: ACCESO A DATOS (DDD & REPOSITORIOS)
+Proyecto de Gestión de Huertos (Arquitectura DDD)
+1. Descripción y Arquitectura
+Este proyecto implementa un sistema de gestión de huertos y propietarios utilizando una arquitectura basada en Domain-Driven Design (DDD). El objetivo es desacoplar la lógica de negocio de la persistencia de datos, garantizando un código modular y mantenible.
 
-## 1. Conceptos Clave (Teoría DDD)
+La estructura del proyecto se divide en capas por responsabilidad:
 
-### ¿Qué arquitectura habéis usado?
-Hemos utilizado una arquitectura basada en **DDD (Domain-Driven Design)** separando las capas por responsabilidad:
-* **Dominio (`src/dominio`):** Contiene la lógica de negocio pura. No sabe nada de ficheros ni de CSVs.
-* **Repositorios (`src/repositorios`):** Implementan el patrón repositorio para acceder a los datos.
-* **Infraestructura (`src/gestorCSV`):** Clase utilitaria para el manejo físico de ficheros.
+Capa de Dominio (src/dominio): Contiene la lógica de negocio pura y las definiciones de las entidades. Esta capa es agnóstica a la tecnología de almacenamiento.
 
-### Diferencia entre Entidad y Objeto Valor
-* **Entidad (`Persona`, `Huerto`):** Son objetos definidos por su **identidad** (tienen un ID único). Aunque dos personas se llamen igual, si tienen distinto ID, son distintas.
-* **Objeto Valor (`Tamanio`):** Son objetos definidos por sus **atributos**. No tienen ID. Si dos tamaños son `50 m2`, son el mismo valor. Además, son inmutables (sus campos son `final`).
+Capa de Repositorios (src/repositorios): Implementa el Patrón Repositorio para abstraer el acceso a datos. Actúa como una colección en memoria para el dominio, ocultando la complejidad del almacenamiento físico.
 
-### ¿Qué es el Patrón Repositorio?
-Es un patrón que abstrae la capa de persistencia. El dominio "pide" guardar o buscar objetos, y al repositorio no le importa si por debajo hay una base de datos SQL, un fichero CSV o una API. En este caso, usamos CSV.
+Capa de Infraestructura (src/gestorCSV): Clases utilitarias encargadas de la lectura y escritura física en ficheros CSV.
 
----
+2. Modelo de Dominio
+El modelo se basa en la distinción clara entre Entidades y Objetos de Valor, cumpliendo con los principios DDD:
 
-## 2. Estructura del Código y Relaciones
+Entidades
+Objetos definidos por su identidad única (ID), independientemente de sus atributos.
 
-### Las Entidades (Justificación de "Al menos dos")
-El enunciado pedía "al menos dos clases de entidades con relación uno a muchos".
-1.  **`Persona`:** La entidad fuerte (Raíz).
-2.  **`Huerto`:** La entidad que depende de la persona.
-* **Relación 1:N:** Una Persona puede tener muchos Huertos. En código, esto se refleja guardando el `idPersona` dentro de la clase `Huerto` (como una Foreign Key en BBDD).
+Persona (Root Entity): Representa al propietario.
 
-### Manejo de Ficheros (`GestorCSV`)
-* Hemos creado una clase estática para reutilizar el código de lectura/escritura.
-* Usamos `BufferedReader` y `BufferedWriter` envueltos en un `try-with-resources` para asegurar que el fichero **siempre se cierra**, incluso si hay errores, evitando fugas de memoria o bloqueos del archivo.
+Huerto: Entidad dependiente asociada a una persona mediante idPersona.
 
----
+Relación 1:N: Una Persona puede poseer múltiples instancias de Huerto. Esta relación se persiste almacenando el ID del propietario en el huerto (referencia por identidad).
 
-## 3. Explicación de los Métodos del Repositorio
+Objetos de Valor (Value Objects)
+Objetos definidos por sus atributos y no por un ID. Son inmutables.
 
-### `findAll()` (Lectura)
-1.  El `GestorCSV` lee todas las líneas del fichero como texto.
-2.  El Repositorio recorre esas líneas y las **mapea** (convierte): rompe la cadena por las comas (`split(",")`) y hace un `new Persona(...)` o `new Huerto(...)`.
-    * *Detalle Huerto:* Al leer un huerto, también reconstruimos su Objeto Valor `Tamanio` leyendo las columnas correspondientes.
+Tamanio: Encapsula la lógica de superficie (valor y unidad). Se garantiza su validez desde la construcción (validaciones en el constructor para evitar tamaños negativos o unidades vacías), asegurando que el dominio siempre se encuentre en un estado consistente.
 
-### `save(Entidad)` (Escritura/Actualización)
-Nuestra estrategia es **sobrescritura completa** (sencilla y robusta para ficheros pequeños):
-1.  Cargamos **todos** los datos en memoria (`findAll`).
-2.  Si la entidad ya existe (mismo ID), la borramos de la lista (`removeIf`).
-3.  Añadimos la nueva versión a la lista.
-4.  Sobrescribimos el fichero entero con la nueva lista.
+3. Estrategia de Persistencia (File System)
+El sistema utiliza ficheros de texto plano (.csv) para asegurar la persistencia de datos entre ejecuciones.
 
-### `deleteById(ID)`
-Similar al `save`: Carga todo -> Borra el que coincide con el ID -> Reescribe todo el fichero.
+Gestión de Ficheros (GestorCSV)
+Se ha implementado una clase utilitaria estática que maneja BufferedReader y BufferedWriter. Se utiliza la estructura try-with-resources de Java para garantizar el cierre seguro de flujos y evitar bloqueos o fugas de memoria.
 
----
+Implementación del CRUD en Repositorios
+Los repositorios (RepoPersona, RepoHuerto) gestionan la persistencia mediante una estrategia de sobrescritura completa para garantizar la integridad en ficheros secuenciales:
 
-## 4. Métodos Semánticos (Requisito Clave)
+Lectura (findAll): El repositorio carga todas las líneas del CSV y mapea los datos a objetos de dominio (Persona, Huerto). En el caso de Huerto, se reconstruye el objeto de valor Tamanio a partir de las columnas correspondientes.
 
-El enunciado exigía "al menos un método propio que pertenezca semánticamente a dicho repositorio".
+Escritura (save / deleteById):
 
-* **En `RepoPersona`:** Implementamos `findByApellido(String apellido)`. Es útil para búsquedas naturales de usuarios, ya que el ID no suele ser conocido por el humano.
-* **En `RepoHuerto`:** Implementamos `findByCultivo(String cultivo)`. Permite filtrar huertos según lo que se haya plantado (ej. buscar todos los "Tomates").
+Se cargan todos los registros en memoria.
 
----
+Se realiza la modificación (añadir, actualizar o borrar) sobre la lista.
 
-## 5. Posibles Preguntas Trampa y Respuestas
+Se sobrescribe el fichero CSV completo con el nuevo estado de la lista.
 
-**P: ¿Por qué no usasteis una tercera entidad?**
-R: El enunciado especifica "al menos dos clases de entidades". Preferimos centrarnos en implementar una arquitectura sólida y limpia con dos entidades y un Value Object (`Tamanio`), asegurando que la relación 1:N y la persistencia funcionaran perfectamente, en lugar de añadir complejidad innecesaria.
+Nota de diseño: Aunque en entornos de alta concurrencia se utilizarían bases de datos, para este volumen de datos la sobrescritura secuencial es una solución robusta y eficiente que simplifica la gestión de la consistencia.
 
-**P: ¿Es eficiente reescribir todo el fichero cada vez que guardáis (`save`)?**
-R: Para el volumen de datos de una práctica académica, es perfectamente válido y simplifica la consistencia de datos. En un entorno real de Big Data, usaríamos acceso aleatorio (`RandomAccessFile`) o una Base de Datos real, pero para ficheros de texto secuenciales, este es el enfoque estándar.
+4. Funcionalidades Extendidas (Búsqueda Semántica)
+Además de las operaciones CRUD estándar (Buscar por ID, Guardar, Borrar), los repositorios incluyen métodos semánticos específicos del dominio de negocio:
 
-**P: ¿Por qué `Tamanio` tiene validaciones en el constructor?**
-R: Porque es un objeto de dominio. Según DDD, un objeto no debería poder crearse en un estado inválido. No tiene sentido un tamaño negativo o sin unidad, así que lanzamos `IllegalArgumentException` al instante.
+RepoPersona.findByApellido(String apellido): Permite localizar usuarios por su apellido, facilitando búsquedas naturales donde no se conoce el ID.
 
-**P: Veo que usáis `List<T> findAll()` pero la interfaz `IRepositorio` dice `Iterable<T>`.**
-R: En Java, `List` extiende de `Iterable`, por lo que cumplimos el contrato de la interfaz. Usamos `List` internamente porque necesitamos métodos como `.add()` o `.removeIf()` para gestionar la persistencia en memoria antes de guardar.
+RepoHuerto.findByCultivo(String cultivo): Permite filtrar los huertos según el tipo de plantación (ej. obtener todos los huertos de "Tomates").
 
----
+5. Ejecución y Pruebas (Main)
+La clase Main actúa como punto de entrada para verificar el flujo completo del sistema. Ejecuta la siguiente secuencia de validación:
 
-## 6. Checklist para la Demo en Vivo (Main)
-Al ejecutar el `Main`, demostraremos:
-1.  **Limpieza:** Se borran los ficheros previos (`deleteAll`).
-2.  **Persistencia:** Se crean Personas y Huertos y se guardan en disco.
-3.  **Integridad:** Se muestra que el conteo (`count()`) es correcto.
-4.  **Búsqueda Semántica:** Usamos `findByApellido` y `findByCultivo` para demostrar que no solo buscamos por ID.
-5.  **Borrado:** Eliminamos una entidad y verificamos que desaparece.
+Inicialización: Limpieza de entornos previos (deleteAll).
+
+Persistencia: Creación y guardado de instancias de Persona y Huerto.
+
+Integridad de Datos: Verificación de conteos (count) y recuperación por ID.
+
+Consultas de Negocio: Ejecución de métodos de búsqueda semántica (findByApellido, findByCultivo).
+
+Eliminación: Borrado de entidades y verificación de persistencia en disco.
