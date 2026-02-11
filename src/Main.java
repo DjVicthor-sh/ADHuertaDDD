@@ -1,9 +1,12 @@
 import dominio.Huerto;
+import dominio.Labor;
 import dominio.Persona;
 import dominio.Tamanio;
 import repositorios.RepoHuerto;
+import repositorios.RepoLabor;
 import repositorios.RepoPersona;
 
+import java.sql.SQLOutput;
 import java.util.List;
 
 public class Main {
@@ -14,10 +17,12 @@ public class Main {
         // 1. Instanciar Repositorios
         RepoPersona repoPersona = new RepoPersona();
         RepoHuerto repoHuerto = new RepoHuerto();
+        RepoLabor repoLabor = new RepoLabor();
 
         // 2. Limpieza inicial (deleteAll) para empezar de cero
         repoPersona.deleteAll();
         repoHuerto.deleteAll();
+        repoLabor.deleteAll();
         System.out.println("[OK] Ficheros limpiados.");
 
         // 3. Guardar Personas (save)
@@ -42,6 +47,14 @@ public class Main {
 
         System.out.println("Huertos guardados: " + repoHuerto.count()); // Debe salir 2
 
+        // LABORES
+        Labor l1 = new Labor(500L, 100L, "Regar toamtes", "2026-02-20");
+        Labor l2 = new Labor(501L, 100L, "Limpiar yerbajos", "2026-05-11");
+
+        repoLabor.save(l1);
+        repoLabor.save(l2);
+        System.out.println("Labores Guardadas: " + repoLabor.count());
+
         // 5. Pruebas de Búsqueda Estándar (findById / existsById)
         System.out.println("\n--- Pruebas CRUD Estándar ---");
         System.out.println("¿Existe Persona 1?: " + repoPersona.existsById(1L));
@@ -50,6 +63,8 @@ public class Main {
         if (hRecuperado != null) {
             System.out.println("Huerto recuperado por ID 100: " + hRecuperado.getCultivo());
         }
+
+
 
         // 6. PRUEBA DE MÉTODOS SEMÁNTICOS (Tus métodos propios)
         System.out.println("\n--- Pruebas de Métodos Propios (Semánticos) ---");
@@ -68,11 +83,22 @@ public class Main {
             System.out.println("  Encontrado Huerto ID " + h.getID() + " en " + h.getLocalizacion());
         }
 
+        // C) RepoLabor: findByHuerto
+        System.out.println("> Buscando labores del huerto de Victor");
+        List<Labor> laboresHuerto = repoLabor.findByHuerto(100L);
+        for (Labor l : laboresHuerto){
+            System.out.println(" - " + l.getDescripcion() + " (Hacer antes de : " + l.getFechaLimite() + ")" );
+        }
+
         // 7. Prueba de Borrado (deleteById)
         System.out.println("\n--- Prueba de Borrado ---");
         repoHuerto.deleteById(100L); // Borramos los tomates
         System.out.println("Huertos restantes tras borrar uno: " + repoHuerto.count());
 
+        // Labores
+        repoLabor.deleteById(500L);
+        System.out.println("Eliminando la labor --> " + l1.getDescripcion());
+        System.out.println("Ahora te quedan... \n" + repoLabor.count() + " -- labor mas" );
         System.out.println("\n=== PRUEBAS FINALIZADAS ===");
     }
 }
