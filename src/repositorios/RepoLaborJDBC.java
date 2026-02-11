@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class RepoLabor implements IRepositorioExtend<Labor, Long> {
+public class RepoLaborJDBC implements IRepositorioExtend<Labor, Long> {
     // Nombre del archivo donde se guardarán las labores
     private static final String FILE_NAME = "Labor.csv";
     private static final String SEPARADOR = ",";

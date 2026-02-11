@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class RepoPersona implements IRepositorioExtend<Persona, Long> {
+public class RepoPersonaJDBC implements IRepositorioExtend<Persona, Long> {
 
     // Constantes para el fichero
     private static final String FILE_NAME = "Persona.csv";
     private static final String SEPARATOR = ",";
 
     // Constructor con validacion
-    public RepoPersona() {
+    public RepoPersonaJDBC() {
         try {
             File file = new File(FILE_NAME);
             if (!file.exists()) {

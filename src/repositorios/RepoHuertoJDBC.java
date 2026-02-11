@@ -10,14 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class RepoHuerto implements IRepositorioExtend<Huerto, Long> {
+public class RepoHuertoJDBC implements IRepositorioExtend<Huerto, Long> {
 
     // Constantes para el fichero
     private static final String FILE_NAME = "Huerto.csv";
     private static final String SEPARADOR = ",";
 
     // Constructor con validacion
-    public RepoHuerto(){
+    public RepoHuertoJDBC(){
         try {
             File file = new File(FILE_NAME);
             if (!file.exists()) {
