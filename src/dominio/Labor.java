@@ -9,18 +9,32 @@ public class Labor {
     public Labor(Long ID, Long idHuerto, String descripcion, String fechaLimite){
         this.ID = ID;
         this.idHuerto = idHuerto;
-        this.descripcion = descripcion;
-        this.fechaLimite = fechaLimite;
+
+        //descripcion
+        if (descripcion == null) {
+            this.descripcion = "";
+        } else {
+            this.descripcion = descripcion.trim();
+        }
+
+        //fecha
+        if (fechaLimite == null){
+            this.fechaLimite = "";
+        } else {
+            this.fechaLimite = fechaLimite.trim();
+        }
     }
 
-    public Long getId() { return ID; }
+    // Cambiado a getID() para seguir el estándar de tus otras clases
+    public Long getID() { return ID; }
     public Long getIdHuerto() { return idHuerto; }
     public String getDescripcion() { return descripcion; }
     public String getFechaLimite() { return fechaLimite; }
 
     @Override
     public String toString() {
-        return "Tarea{" + "ID=" + ID + ", idHuerto=" + idHuerto +
+        // Corregido el nombre de la clase en el String
+        return "Labor{" + "ID=" + ID + ", idHuerto=" + idHuerto +
                 ", descripcion='" + descripcion + '\'' + ", fecha='" + fechaLimite + '\'' + '}';
     }
 }
