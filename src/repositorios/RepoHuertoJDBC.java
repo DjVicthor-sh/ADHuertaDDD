@@ -1,182 +1,122 @@
 package repositorios;
 
+import baseDatos.ConexionDB;
 import dominio.Huerto;
-
 import dominio.Tamanio;
-import gestorCSV.GestorCSV;
-
-import java.io.*;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class RepoHuertoJDBC implements IRepositorioExtend<Huerto, Long> {
-
-    // Constantes para el fichero
-    private static final String FILE_NAME = "Huerto.csv";
-    private static final String SEPARADOR = ",";
-
-    // Constructor con validacion
-    public RepoHuertoJDBC(){
-        try {
-            File file = new File(FILE_NAME);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error al crear el fichero CSV: " + e.getMessage());
-        }
-    }
-
-    // --- Métodos privados ---
-
-    private String huertoToCSV(Huerto huerto) {
-        // "Aplanamos" el objeto Tamanio en sus dos propiedades
-        return huerto.getID() + SEPARADOR +
-                huerto.getIdPersona() + SEPARADOR +
-                huerto.getCultivo() + SEPARADOR +
-                huerto.getLocalizacion() + SEPARADOR +
-                huerto.getTamanio().getTamanio() + SEPARADOR + // <-- [4] Valor del tamaño
-                huerto.getTamanio().getUnidad();            // <-- [5] Unidad del tamaño
-    }
-
-    private Huerto csvToHueto(String csvLine) {
-
-        String[] parte = csvLine.split(SEPARADOR);
-
-        // 1. "Re-hidratamos" el Objeto Valor Tamanio leyendo las dos últimas columnas
-        float tamanioValor = Float.parseFloat(parte[4]);
-        String tamanioUnidad = parte[5];
-        Tamanio tamanio = new Tamanio(tamanioValor, tamanioUnidad);
-
-        // 2. Creamos el Huerto con el objeto Tamanio
-        return new Huerto(
-                Long.parseLong(parte[0]),
-                Long.parseLong(parte[1]),
-                parte[2],
-                parte[3],
-                tamanio // <-- Le pasamos el objeto completo
-        );
-    }
-
-    private void escribirTodas(List<Huerto> huerto) {
-        // 1. El Repositorio "traduce" las personas a líneas
-        List<String> lineas = new ArrayList<>();
-        for (Huerto h : huerto) {
-            lineas.add(huertoToCSV(h));
-        }
-
-        // 2. El gestorCSV.GestorCSV escribe las líneas
-        GestorCSV.escribirTodasLasLineas(FILE_NAME, lineas);
-    }
-
-
-    @Override
-    public Optional<Huerto> findByIdOptional(Long id) {
-        return Optional.empty();
-    }
-
-    //Suma 1 por cada linea, cada lina es una entidad distinta
-    @Override
-    public long count() {
-        // Mucho más simple: solo cuenta la lista de findAll()
-        return findAll().size();
-    }
-
-    @Override
-    public void deleteById(Long id) {
-
-        if (id == null) {
-            throw new IllegalArgumentException("El ID no puede ser nulo");
-        }
-        // 1. LEER TODO
-        List<Huerto> lista = findAll();
-
-        // 2. MODIFICAR EN MEMORIA
-        lista.removeIf(h -> h.getID().equals(id));
-
-        // 3. VOLVER A ESCRIBIR TODO
-        escribirTodas(lista);
-
-    }
-
-    //Para borrar simplemente escribimos una linea sin nada, ya que escribe desde el principio
-    @Override
-    public void deleteAll() {
-        // Le pide al gestor que escriba una lista vacía
-        GestorCSV.escribirTodasLasLineas(FILE_NAME, new ArrayList<>());
-    }
-
-    @Override
-    public boolean existsById(Long id) {
-
-        if (id == null) {
-            throw new IllegalArgumentException("El ID no puede ser nulo");
-        }
-
-        for (Huerto h : findAll()) {
-            if (h.getID().equals(id)) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }
-
-    @Override
-    public Huerto findById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El ID no puede ser nulo");
-        }
-
-        for (Huerto h : findAll()) {
-            if (h.getID().equals(id)) {
-                return h;
-            }
-        }
-
-        return null;
-    }
 
     @Override
     public List<Huerto> findAll() {
         List<Huerto> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Huerto";
 
-        // 1. El GestorCSV lee
-        List<String> lineas = GestorCSV.leerLineas(FILE_NAME);
+        try (Connection conn = ConexionDB.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-        // 2. El Repositorio traduce
-        for (String linea : lineas) {
-            lista.add(csvToHueto(linea));
+            while (rs.next()) {
+                // Reconstruccion del objeto valor desde columnas
+                Tamanio t = new Tamanio(rs.getFloat("tamanioValor"), rs.getString("tamanioUnidad"));
+
+                lista.add(new Huerto(
+                        rs.getLong("ID"),
+                        rs.getLong("idPersona"),
+                        rs.getString("cultivo"),
+                        rs.getString("localizacion"),
+                        t
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error en findAll: " + e.getMessage());
         }
-
-        return lista;
+        return lista.stream().collect(Collectors.toList());
     }
-
 
     @Override
-    public <S extends Huerto> S save(S huerto) {
+    public <S extends Huerto> S save(S entity) {
+        if (entity == null || entity.getID() == null) throw new IllegalArgumentException("Datos nulos");
 
-        List<Huerto> lista = findAll();
+        String sql = "INSERT OR REPLACE INTO Huerto (ID, idPersona, cultivo, localizacion, tamanioValor, tamanioUnidad) VALUES (?, ?, ?, ?, ?, ?)";
 
-        lista.removeIf(h -> h.getID().equals(huerto.getID()));
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        lista.add(huerto);
+            pstmt.setLong(1, entity.getID());
+            pstmt.setLong(2, entity.getIdPersona());
+            pstmt.setString(3, entity.getCultivo());
+            pstmt.setString(4, entity.getLocalizacion());
+            // Desglose de objeto valor
+            pstmt.setFloat(5, entity.getTamanio().getTamanio());
+            pstmt.setString(6, entity.getTamanio().getUnidad());
 
-        //Esperrar a gestorCSV.GestorCSV para la funcion de escribir
-        escribirTodas(lista);
-
-        return huerto;
-    }
-    public List<Huerto> findByCultivo(String cultivo) {
-        List<Huerto> resultado = new ArrayList<>();
-        for (Huerto h : findAll()) {
-            if (h.getCultivo().equalsIgnoreCase(cultivo)) {
-                resultado.add(h);
-            }
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error en save: " + e.getMessage());
         }
-        return resultado;
+        return entity;
+    }
+
+    @Override
+    public Huerto findById(Long id) {
+        if (id == null) throw new IllegalArgumentException("ID nulo");
+        return findAll().stream()
+                .filter(h -> h.getID().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        if (id == null) throw new IllegalArgumentException("ID nulo");
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("DELETE FROM Huerto WHERE ID = ?")) {
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteAll() {
+        try (Connection conn = ConexionDB.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("DELETE FROM Huerto");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public long count() {
+        return findAll().stream().count();
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return findById(id) != null;
+    }
+
+    @Override
+    public Optional<Huerto> findByIdOptional(Long id) {
+        return Optional.ofNullable(findById(id));
+    }
+
+    // Busqueda por tipo de cultivo
+    public List<Huerto> findByCultivo(String cultivo) {
+        return findAll().stream()
+                .filter(h -> h.getCultivo().equalsIgnoreCase(cultivo))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Huerto> findAllToList() {
+        return findAll();
     }
 }
-

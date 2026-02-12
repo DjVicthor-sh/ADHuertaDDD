@@ -11,7 +11,7 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("=== INICIO DE PRUEBAS (2 Entidades: Persona y Huerto) ===");
+        System.out.println("=== INICIO DE PRUEBAS (3 Entidades: Persona, Huerto y Labor) ===");
 
         // 1. Instanciar Repositorios
         RepoPersonaJDBC repoPersonaJDBC = new RepoPersonaJDBC();

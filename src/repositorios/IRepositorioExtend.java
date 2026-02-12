@@ -19,5 +19,5 @@ public interface IRepositorioExtend<T, ID> extends IRepositorio<T,ID> {
      *
      * @return    todas las instancias.
      * */
-    List<T> findAll();
+    List<T> findAllToList();
 }

@@ -1,172 +1,108 @@
 package repositorios;
 
+import baseDatos.ConexionDB;
 import dominio.Persona;
-import gestorCSV.GestorCSV;
-
-import java.io.*;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class RepoPersonaJDBC implements IRepositorioExtend<Persona, Long> {
 
-    // Constantes para el fichero
-    private static final String FILE_NAME = "Persona.csv";
-    private static final String SEPARATOR = ",";
-
-    // Constructor con validacion
-    public RepoPersonaJDBC() {
-        try {
-            File file = new File(FILE_NAME);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error al crear el fichero CSV: " + e.getMessage());
-        }
-    }
-
-    // --- Métodos Privados ---
-
-    /**
-     * Convierte un objeto Persona en una línea de texto CSV.
-     * Formato: ID,nombre,apellido
-     */
-    private String personaToCsv(Persona persona) {
-        return persona.getID() + SEPARATOR +
-                persona.getNombre() + SEPARATOR +
-                persona.getApellido();
-    }
-
-    /**
-     * Convierte una línea de texto CSV en un objeto Persona.
-     */
-    private Persona csvToPersona(String csvLine) {
-        String[] partes = csvLine.split(SEPARATOR);
-        // Nuestro formato CSV es ID[0], nombre[1], apellido[2]
-        return new Persona(Long.parseLong(partes[0]), partes[1], partes[2]);
-    }
-    /**
-     * MÉTODO CLAVE: Escribe una lista completa de Personas en el fichero,
-     * SOBRESCRIBIENDO el contenido. Esto es necesario para save() y deleteById().
-     */
-    private void escribirTodas(List<Persona> personas) {
-        // 1. El Repositorio "traduce" las personas a líneas
-        List<String> lineas = new ArrayList<>();
-        for (Persona p : personas) {
-            lineas.add(personaToCsv(p));
-        }
-
-        // 2. El gestorCSV.GestorCSV escribe las líneas
-        GestorCSV.escribirTodasLasLineas(FILE_NAME, lineas);
-    }
-
-
-    // --- Implementación de IRepositorioExtend ---
-
-    /**
-     * Devuelve todas las instancias de Persona del fichero.
-     */
     @Override
     public List<Persona> findAll() {
-        List<Persona> personas = new ArrayList<>();
+        List<Persona> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Persona";
 
-        // 1. El gestorCSV.GestorCSV lee las líneas
-        List<String> lineas = GestorCSV.leerLineas(FILE_NAME);
+        try (Connection conn = ConexionDB.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-        // 2. El Repositorio las "traduce"
-        for (String linea : lineas) {
-            personas.add(csvToPersona(linea));
+            while (rs.next()) {
+                lista.add(new Persona(
+                        rs.getLong("ID"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al leer personas: " + e.getMessage());
         }
 
-        return personas;
+        return lista.stream().collect(Collectors.toList());
     }
 
-    /**
-     * Guarda una entidad (la añade o la actualiza si ya existe).
-     */
+    @Override
+    public List<Persona> findAllToList() {
+        return findAll();
+    }
+
     @Override
     public <S extends Persona> S save(S entity) {
         if (entity == null || entity.getID() == null) {
             throw new IllegalArgumentException("La entidad o su ID no pueden ser nulos");
         }
 
-        // 1. LEER TODO
-        List<Persona> todas = findAll();
+        String sql = "INSERT OR REPLACE INTO Persona (ID, nombre, apellido) VALUES (?, ?, ?)";
 
-        // 2. MODIFICAR EN MEMORIA
-        //    Eliminamos la versión "vieja" de esta persona (si existe)
-        todas.removeIf(p -> p.getID().equals(entity.getID()));
-        //    Añadimos la entidad (nueva o actualizada) a la lista
-        todas.add(entity);
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        // 3. VOLVER A ESCRIBIR TODO
-        escribirTodas(todas);
+            pstmt.setLong(1, entity.getID());
+            pstmt.setString(2, entity.getNombre());
+            pstmt.setString(3, entity.getApellido());
+            pstmt.executeUpdate();
 
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al guardar persona: " + e.getMessage());
+        }
         return entity;
     }
 
-    /**
-     * Borra la entidad con el identificador dado.
-     * Esta es la implementación COMPLETA.
-     */
-    @Override
-    public void deleteById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El ID no puede ser nulo");
-        }
-        // 1. LEER TODO
-        List<Persona> todas = findAll();
-
-        // 2. MODIFICAR EN MEMORIA
-        todas.removeIf(p -> p.getID().equals(id));
-
-        // 3. VOLVER A ESCRIBIR TODO
-        escribirTodas(todas);
-    }
-
-    /**
-     * Borra todas las entidades del repositorio.
-     */
-    @Override
-    public void deleteAll() {
-        // Le pedimos al gestor que escriba una lista vacía
-        GestorCSV.escribirTodasLasLineas(FILE_NAME, new ArrayList<>());
-    }
-
-    /**
-     * Devuelve el número de entidades.
-     */
-    @Override
-    public long count() {
-        // Es más eficiente reusar findAll() que volver a leer el fichero
-        return findAll().size();
-    }
-
-    /**
-     * Devuelve la entidad con el ID dado.
-     */
     @Override
     public Persona findById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El ID no puede ser nulo");
-        }
-        for (Persona p : findAll()) {
-            if (p.getID().equals(id)) {
-                return p;
-            }
-        }
-        return null; // No se encuentra
+        if (id == null) throw new IllegalArgumentException("El ID no puede ser nulo");
+
+        return findAll().stream()
+                .filter(p -> p.getID().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
-    /**
-     * Devuelve true si existe una entidad con el ID dado.
-     */
+    @Override
+    public void deleteById(Long id) {
+        if (id == null) throw new IllegalArgumentException("El ID no puede ser nulo");
+
+        String sql = "DELETE FROM Persona WHERE ID = ?";
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteAll() {
+        String sql = "DELETE FROM Persona";
+        try (Connection conn = ConexionDB.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public long count() {
+        return findAll().stream().count();
+    }
+
     @Override
     public boolean existsById(Long id) {
-        if (id == null) {
-            return false;
-        }
         return findById(id) != null;
     }
 
@@ -175,14 +111,10 @@ public class RepoPersonaJDBC implements IRepositorioExtend<Persona, Long> {
         return Optional.ofNullable(findById(id));
     }
 
+    //mettodo propio semantico
     public List<Persona> findByApellido(String apellido) {
-        List<Persona> resultado = new ArrayList<>();
-        for (Persona p : findAll()) {
-            if (p.getApellido().equalsIgnoreCase(apellido)) {
-                resultado.add(p);
-            }
-        }
-        return resultado;
+        return findAll().stream()
+                .filter(p -> p.getApellido().equalsIgnoreCase(apellido))
+                .collect(Collectors.toList());
     }
 }
-

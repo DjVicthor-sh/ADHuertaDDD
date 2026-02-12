@@ -1,65 +1,72 @@
 package repositorios;
 
+import baseDatos.ConexionDB;
 import dominio.Labor;
-import gestorCSV.GestorCSV;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class RepoLaborJDBC implements IRepositorioExtend<Labor, Long> {
-    // Nombre del archivo donde se guardarán las labores
-    private static final String FILE_NAME = "Labor.csv";
-    private static final String SEPARADOR = ",";
 
-    // Pasa un objeto Labor a una línea de texto para el CSV
-    private String laborToCsv(Labor l) {
-        return l.getID() + SEPARADOR +
-                l.getIdHuerto() + SEPARADOR +
-                l.getDescripcion() + SEPARADOR +
-                l.getFechaLimite();
-    }
-
-    // Pasa una línea del CSV a un objeto Labor
-    private Labor csvToLabor(String linea) {
-        String[] partes = linea.split(SEPARADOR);
-        return new Labor(
-                Long.parseLong(partes[0]),
-                Long.parseLong(partes[1]),
-                partes[2],
-                partes[3]
-        );
-    }
-
-
-    // Implementación de la Interfaz
     @Override
     public List<Labor> findAll() {
-        // Usamos Streams para leer y convertir todas las líneas
-        return GestorCSV.leerLineas(FILE_NAME).stream()
-                .map(this::csvToLabor)
-                .collect(Collectors.toList());
+        List<Labor> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Labor";
+
+        try (Connection conn = ConexionDB.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                lista.add(new Labor(
+                        rs.getLong("ID"),
+                        rs.getLong("idHuerto"),
+                        rs.getString("descripcion"),
+                        rs.getString("fechaLimite")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al leer las labores: " + e.getMessage());
+        }
+
+        return lista.stream().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Labor> findAllToList() {
+        return findAll();
     }
 
     @Override
     public <S extends Labor> S save(S entity) {
-        List<Labor> todas = findAll();
-        // Borramos la versión vieja si existe para actualizar
-        todas.removeIf(l -> l.getID().equals(entity.getID()));
-        todas.add(entity);
+        if (entity == null || entity.getID() == null) {
+            throw new IllegalArgumentException("La entidad o su ID no pueden ser nulos");
+        }
 
-        // Guardamos toddo de nuevo convirtiendo a texto con Streams
-        List<String> lineas = todas.stream()
-                .map(this::laborToCsv)
-                .collect(Collectors.toList());
+        // para insertar o actualizar si el ID ya existe
+        String sql = "INSERT OR REPLACE INTO Labor (ID, idHuerto, descripcion, fechaLimite) VALUES (?, ?, ?, ?)";
 
-        GestorCSV.escribirTodasLasLineas(FILE_NAME, lineas);
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, entity.getID());
+            pstmt.setLong(2, entity.getIdHuerto());
+            pstmt.setString(3, entity.getDescripcion());
+            pstmt.setString(4, entity.getFechaLimite());
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al guardar la labor: " + e.getMessage());
+        }
         return entity;
     }
 
     @Override
     public Labor findById(Long id) {
-        // Buscamos usando Stream para cumplir con el requisito
+        if (id == null) throw new IllegalArgumentException("El ID no puede ser nulo");
+
         return findAll().stream()
                 .filter(l -> l.getID().equals(id))
                 .findFirst()
@@ -68,23 +75,33 @@ public class RepoLaborJDBC implements IRepositorioExtend<Labor, Long> {
 
     @Override
     public void deleteById(Long id) {
-        List<Labor> todas = findAll();
-        if (todas.removeIf(l -> l.getID().equals(id))) {
-            List<String> lineas = todas.stream()
-                    .map(this::laborToCsv)
-                    .collect(Collectors.toList());
-            GestorCSV.escribirTodasLasLineas(FILE_NAME, lineas);
+        if (id == null) throw new IllegalArgumentException("El ID no puede ser nulo");
+
+        String sql = "DELETE FROM Labor WHERE ID = ?";
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al borrar la labor: " + e.getMessage());
         }
     }
 
     @Override
     public void deleteAll() {
-        GestorCSV.escribirTodasLasLineas(FILE_NAME, new ArrayList<>());
+        String sql = "DELETE FROM Labor";
+        try (Connection conn = ConexionDB.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(sql);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al borrar todas las labores: " + e.getMessage());
+        }
     }
 
     @Override
     public long count() {
-        return findAll().size();
+        return findAll().stream().count();
     }
 
     @Override
@@ -97,7 +114,7 @@ public class RepoLaborJDBC implements IRepositorioExtend<Labor, Long> {
         return Optional.ofNullable(findById(id));
     }
 
-    // Method propio busca todas las labores de un huerto concreto
+    //el mettdo propio semantico
     public List<Labor> findByHuerto(Long idHuerto) {
         return findAll().stream()
                 .filter(l -> l.getIdHuerto().equals(idHuerto))

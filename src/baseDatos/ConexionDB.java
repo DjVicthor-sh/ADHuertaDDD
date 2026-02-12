@@ -6,33 +6,31 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class ConexionDB {
-    // La URL usa "jdbc:sqlite:" seguido del nombre del archivo.
-    // Al no poner una ruta C:\..., Java lo creará en la carpeta raíz del proyecto (Ruta relativa).
+    // Ruta relativa para base de datos SQLite
     private static final String URL = "jdbc:sqlite:huerto_db.db";
     private static Connection connection = null;
 
-    // Método para obtener la conexión
+    // Obtencion de la conexion (Singleton)
     public static Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
             connection = DriverManager.getConnection(URL);
-            crearTablas(); // Cada vez que conectamos, nos aseguramos de que las tablas existen
+            crearTablas();
         }
         return connection;
     }
 
-    // Este método crea las tablas automáticamente si no existen.
-    // Así tu práctica es "ejecutar y listo" para el profesor.
+    // Inicializacion del esquema de base de datos
     private static void crearTablas() {
         try (Connection conn = DriverManager.getConnection(URL);
              Statement stmt = conn.createStatement()) {
 
-            // Tabla Persona
+            // Entidad Persona
             stmt.execute("CREATE TABLE IF NOT EXISTS Persona (" +
                     "ID INTEGER PRIMARY KEY," +
                     "nombre TEXT," +
                     "apellido TEXT)");
 
-            // Tabla Huerto (con las columnas para el objeto valor Tamanio)
+            // Entidad Huerto con campos de objeto valor Tamanio
             stmt.execute("CREATE TABLE IF NOT EXISTS Huerto (" +
                     "ID INTEGER PRIMARY KEY," +
                     "idPersona INTEGER," +
@@ -41,7 +39,7 @@ public class ConexionDB {
                     "tamanioValor REAL," +
                     "tamanioUnidad TEXT)");
 
-            // Tabla Labor
+            // Entidad Labor vinculada a Huerto
             stmt.execute("CREATE TABLE IF NOT EXISTS Labor (" +
                     "ID INTEGER PRIMARY KEY," +
                     "idHuerto INTEGER," +
@@ -49,7 +47,7 @@ public class ConexionDB {
                     "fechaLimite TEXT)");
 
         } catch (SQLException e) {
-            throw new RuntimeException("Error al inicializar las tablas: " + e.getMessage());
+            throw new RuntimeException("Error en init DB: " + e.getMessage());
         }
     }
 }
